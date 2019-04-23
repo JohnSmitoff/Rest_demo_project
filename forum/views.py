@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Question
+from .models import Question, Answer
 from .serializers import QuestionSerializer
 
 
@@ -25,7 +25,6 @@ class QuestionsList(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class QuestionDetails(APIView):
 
@@ -54,4 +53,39 @@ class QuestionDetails(APIView):
         question = self.get_object(pk=question_id)
         question.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    
+class AnswerDetail(APIView):
+    def get_object(self, pk):
+        try:
+            answer = Answer.objects.get(pk=pk)
+            return answer
+        except Answer.DoesNotExist:
+            raise Http404
+
+    def get(self, request, question_id, answer_id):
+        full_request_url = request.build_absolute_uri()
+        try:
+            question = Question.objects.get(pk=question_id)
+
+            if "dislike" in full_request_url:
+                answer = self.get_object(pk=answer_id)
+                answer.dislikes += 1
+                answer.save()
+                serializer = AnswerSerializer(answer)
+                return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            elif "like" in full_request_url:
+                answer = self.get_object(pk=answer_id)
+                answer.likes += 1
+                answer.save()
+                serializer = AnswerSerializer(answer)
+                return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            else:
+                answer = self.get_object(pk=answer_id)
+                serializer = AnswerSerializer(answer)
+                return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        except Question.DoesNotExist:
+
+            return Response("No such a question", status=status.HTTP_404_NOT_FOUND)
+
 
