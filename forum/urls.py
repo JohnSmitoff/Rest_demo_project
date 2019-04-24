@@ -11,6 +11,9 @@ urlpatterns = [
     re_path(
         "^questions/(?P<question_id>\d+)/answer/(?P<answer_id>\d+)/$",
         views.AnswerDetail.as_view(),
-        name="answer-detail"
-    )
+        name="answer-detail",
+    ),
+    re_path(
+        "^only_questions_with_answers/$", views.QuestionListWithAnswers.as_view(), name="questions_with_answers"
+    ),
 ]
